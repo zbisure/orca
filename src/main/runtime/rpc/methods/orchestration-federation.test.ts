@@ -1,3 +1,4 @@
+import { mockWorkerPromptExecution } from './orchestration-worker-input-fixtures'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RuntimeRpcResponse } from '../../../../shared/runtime-rpc-envelope'
 import {
@@ -153,11 +154,7 @@ describe('orchestration federation', () => {
     )
     vi.spyOn(runtime, 'getTerminalProcessIncarnation').mockReturnValue('windows_runtime:pty:1')
     vi.spyOn(runtime, 'getTerminalOrchestrationCliCommand').mockReturnValue('orca')
-    vi.spyOn(runtime, 'sendTerminalAgentPrompt').mockResolvedValue({
-      handle: 'term_windows_worker',
-      accepted: true,
-      bytesWritten: 1
-    })
+    mockWorkerPromptExecution(runtime, 'term_windows_worker')
     vi.spyOn(runtime, 'showTerminal').mockResolvedValue({
       handle: 'term_windows_worker',
       worktreeId: 'repo::windows-worktree',

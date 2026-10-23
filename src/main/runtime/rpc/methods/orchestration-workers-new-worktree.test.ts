@@ -1,3 +1,4 @@
+import { mockWorkerPromptExecution } from './orchestration-worker-input-fixtures'
 import { createHash } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ORCHESTRATION_CONTRACT_VERSION } from '../../../../shared/protocol-version'
@@ -64,11 +65,7 @@ describe('orchestration new-worktree workers', () => {
       new Promise(() => undefined)
     )
     vi.spyOn(runtime, 'getTerminalOrchestrationCliCommand').mockReturnValue('orca')
-    vi.spyOn(runtime, 'sendTerminalAgentPrompt').mockResolvedValue({
-      handle: 'term_worker',
-      accepted: true,
-      bytesWritten: 1
-    })
+    mockWorkerPromptExecution(runtime, 'term_worker')
   })
 
   afterEach(() => db.close())

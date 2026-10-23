@@ -1,3 +1,4 @@
+import { mockWorkerPromptExecution } from './orchestration-worker-input-fixtures'
 /* eslint-disable max-lines -- Why: orchestration tests share a mock runtime factory; splitting by method would duplicate 40 lines of setup per file without improving clarity. */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ORCHESTRATION_METHODS } from './orchestration'
@@ -2115,12 +2116,38 @@ describe('orchestration RPC methods', () => {
         handle === 'term_worker' ? 'runtime_test:term_worker:1' : null
       )
       vi.spyOn(runtime, 'getTerminalOrchestrationCliCommand').mockReturnValue('orca')
-      vi.spyOn(runtime, 'sendTerminalAgentPrompt').mockResolvedValue({
-        handle: 'term_worker',
-        accepted: true,
-        bytesWritten: 1
-      })
+      mockWorkerPromptExecution(runtime, 'term_worker')
     }
+
+    it('does not mark a Codex dispatch ready when input execution is unconfirmed', async () => {
+      setup()
+      mockCurrentWorkerStart()
+      vi.spyOn(runtime, 'getTerminalAgentStatus').mockResolvedValue({
+        handle: 'term_worker',
+        isRunningAgent: true,
+        status: 'idle'
+      })
+      vi.spyOn(runtime, 'showTerminal').mockResolvedValue({
+        handle: 'term_worker',
+        worktreeId: 'repo::worktree',
+        connected: true,
+        writable: true,
+        preview: '›',
+        lastOutputAt: 0
+      } as never)
+      const task = db.createTask({ spec: 'unsubmitted task' })
+      const result = await call('orchestration.workerStart', {
+        task: task.id,
+        from: 'term_coord',
+        worktree: 'current',
+        agent: 'codex',
+        timeoutMs: 1
+      })
+      expect(result).toMatchObject({ state: 'outcome_unknown' })
+      expect(JSON.stringify(result)).toContain('worker_input_unconfirmed')
+      expect(db.getActiveDispatchForTerminal('term_worker')).toBeDefined()
+      expect(runtime.sendTerminalAgentPrompt).toHaveBeenCalledOnce()
+    })
 
     it('starts a fresh agent in the coordinator current worktree', async () => {
       setup()

@@ -1,3 +1,4 @@
+import { sendWorkerPrompt } from './orchestration-worker-input'
 import { isTuiAgent } from '../../../../shared/tui-agent-config'
 import type { TuiAgent } from '../../../../shared/types'
 import { buildDispatchPreamble } from '../../orchestration/preamble'
@@ -250,7 +251,8 @@ export const ORCHESTRATION_FEDERATION_ATTACH_METHODS: RpcMethod[] = [
           effects
         })
         failedStage = 'dispatch_input'
-        await runtime.sendTerminalAgentPrompt(
+        await sendWorkerPrompt(
+          runtime,
           terminalHandle,
           buildDispatchPreamble({
             taskId: params.taskId,
@@ -261,7 +263,8 @@ export const ORCHESTRATION_FEDERATION_ATTACH_METHODS: RpcMethod[] = [
             dispatchCapability: capability,
             devMode: params.devMode,
             cliCommand: runtime.getTerminalOrchestrationCliCommand(terminalHandle)
-          })
+          }),
+          { agent, timeoutMs: params.timeoutMs }
         )
         effects.push({
           kind: 'dispatch_input',

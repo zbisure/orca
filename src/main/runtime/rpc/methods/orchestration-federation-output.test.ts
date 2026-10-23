@@ -1,3 +1,4 @@
+import { mockWorkerPromptExecution } from './orchestration-worker-input-fixtures'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -147,11 +148,7 @@ describe('orchestration federated worker output', () => {
     )
     vi.spyOn(runtime, 'getTerminalProcessIncarnation').mockReturnValue('windows_runtime:pty:1')
     vi.spyOn(runtime, 'getTerminalOrchestrationCliCommand').mockReturnValue('orca')
-    vi.spyOn(runtime, 'sendTerminalAgentPrompt').mockResolvedValue({
-      handle: 'term_windows_worker',
-      accepted: true,
-      bytesWritten: 1
-    })
+    mockWorkerPromptExecution(runtime, 'term_windows_worker')
     vi.spyOn(runtime, 'showTerminal').mockResolvedValue({
       handle: 'term_windows_worker',
       worktreeId: 'repo::windows-worktree',
